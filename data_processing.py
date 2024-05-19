@@ -34,28 +34,22 @@ def data_prepare(dataset):
         with the target variable final_price removed.
         2. Create Target (Y): A Series Y is created that contains the final_price values.
     """
-    # Step 1: Create a copy of the dataset
+    # Step 1: Create a features dataset
     features = ['asked_price', 'land_area', 'area', 'price_per_area', 'rooms', 'supplemental_area']
     X = dataset[features]
-    # # Step 2: Drop the 'final_price' column from the features
-    # X.drop(['final_price'], axis=1, inplace=True)
-    # Step 3: Remove non-numeric columns from the features
-    for each in X.columns:
-        if X[each].dtype == 'O':
-            X.drop([each], axis=1, inplace=True)
-    # Step 4: Extract the target variable
+    # Step 2: Extract the target variable
     Y = dataset.final_price
     
     for each in X.columns:
-        # Step 5: Print the count of non-null and null values for each column.This is needed for identifying missing values in the dataset and data cleaning.
+        # Step 3: Print the count of non-null and null values for each column.This is needed for identifying missing values in the dataset and data cleaning.
         print(X[each].isnull().value_counts())
-        # Step 6: Fill missing values with the mean of the column
+        # Step 4: Fill missing values with the mean of the column
         X[each] = X[each].fillna(X[each].mean())
-    # Step 7: Print the count of non-null and null values for the target variable 'final_price'
+    # Step 5: Print the count of non-null and null values for the target variable 'final_price'
     print(Y.isnull().value_counts())
-    # Step 8: Fill missing values in the target variable with the mean of the column
+    # Step 6: Fill missing values in the target variable with the mean of the column
     Y = Y.fillna(Y.mean())
-    # Step 9: Return the features and target variable
+    # Step 7: Return the features and target variable
     return X, Y
 
 def data_plotting(dataset):
