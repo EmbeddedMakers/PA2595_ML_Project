@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt  # to visualize the data features
 
 import os, logging, sys
 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.model_selection import cross_val_score
+
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 def data_load():
     # Input data files are available in the read-only "../input/" directory
@@ -28,15 +35,17 @@ def data_prepare(dataset):
         2. Create Target (Y): A Series Y is created that contains the final_price values.
     """
     # Step 1: Create a copy of the dataset
-    X = dataset.copy()
-    # Step 2: Drop the 'final_price' column from the features
-    X.drop(['final_price'], axis=1, inplace=True)
+    features = ['asked_price', 'land_area', 'area', 'price_per_area', 'rooms', 'supplemental_area']
+    X = dataset[features]
+    # # Step 2: Drop the 'final_price' column from the features
+    # X.drop(['final_price'], axis=1, inplace=True)
     # Step 3: Remove non-numeric columns from the features
     for each in X.columns:
         if X[each].dtype == 'O':
             X.drop([each], axis=1, inplace=True)
     # Step 4: Extract the target variable
     Y = dataset.final_price
+    
     for each in X.columns:
         # Step 5: Print the count of non-null and null values for each column.This is needed for identifying missing values in the dataset and data cleaning.
         print(X[each].isnull().value_counts())
@@ -70,6 +79,45 @@ def data_plotting(dataset):
             # Display the plot
             plt.show()
 
+def train_models(X_train, y_train):
+    # Define models
+    models = {
+        'Linear Regression': LinearRegression(),
+        'Decision Tree': DecisionTreeRegressor(random_state=42),
+        'Random Forest': RandomForestRegressor(random_state=42),
+        'Gradient Boosting': GradientBoostingRegressor(random_state=42)
+    }
+
+    # Train and evaluate models using cross-validation
+    results = {}
+    for name, model in models.items():
+        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+        rmse_scores = np.sqrt(-cv_scores)
+        results[name] = {'RMSE': rmse_scores.mean(), 'STD': rmse_scores.std()}
+
+    results_df = pd.DataFrame(results).T
+    results_df.sort_values(by='RMSE', inplace=True)
+    print(results_df)
+    
+    # Get the name of the best model
+    best_model_name = results_df.index[0]
+    print(f'Best model name: {best_model_name}')
+    
+    # Select the best model from the models dictionary
+    best_model = models[best_model_name]
+    best_model.fit(X_train, y_train)
+    
+    # Get the name of the best model
+    second_model_name = results_df.index[1]
+    print(f'Second model name: {second_model_name}')
+    
+    # Select the best model from the models dictionary
+    second_model = models[second_model_name]
+    second_model.fit(X_train, y_train)
+    
+    return best_model, second_model
+
+
 def main():
     print ("Hello")
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
@@ -77,7 +125,12 @@ def main():
     # Describe function is used to generate descriptive statistics that summarize the central tendency, dispersion and shape of a dataset’s distribution, excluding NaN values.
     dataset.describe()
     #data_plotting(dataset)
-    data_prepare(dataset)
+    x, y = data_prepare(dataset)
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+    best_model, second_model = train_models(X_train, y_train)
+    
 
 
 
