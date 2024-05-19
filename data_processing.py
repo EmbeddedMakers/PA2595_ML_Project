@@ -14,33 +14,73 @@ def data_load():
         for filename in filenames:
             logging.debug(os.path.join(dirname, filename))
             dataset = pd.read_csv(os.path.join(dirname, filename))
+            # The column named 'Unnamed: 0' is dropped from the dataset.
+            # The inplace=True parameter means that the operation is performed directly on the dataset without needing to reassign it.
             dataset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
             logging.debug(dataset.describe())
             logging.debug(dataset.head(5))
             return dataset
 
-
+def data_prepare(dataset):
+    """The purpose of this function is to prepare the data for a machine learning model:
+        1. Create Features (X): A DataFrame X is created that contains only the numeric features from the original dataset, 
+        with the target variable final_price removed.
+        2. Create Target (Y): A Series Y is created that contains the final_price values.
+    """
+    # Step 1: Create a copy of the dataset
+    X = dataset.copy()
+    # Step 2: Drop the 'final_price' column from the features
+    X.drop(['final_price'], axis=1, inplace=True)
+    # Step 3: Remove non-numeric columns from the features
+    for each in X.columns:
+        if X[each].dtype == 'O':
+            X.drop([each], axis=1, inplace=True)
+    # Step 4: Extract the target variable
+    Y = dataset.final_price
+    for each in X.columns:
+        # Step 5: Print the count of non-null and null values for each column.This is needed for identifying missing values in the dataset and data cleaning.
+        print(X[each].isnull().value_counts())
+        # Step 6: Fill missing values with the mean of the column
+        X[each] = X[each].fillna(X[each].mean())
+    # Step 7: Print the count of non-null and null values for the target variable 'final_price'
+    print(Y.isnull().value_counts())
+    # Step 8: Fill missing values in the target variable with the mean of the column
+    Y = Y.fillna(Y.mean())
+    # Step 9: Return the features and target variable
+    return X, Y
 
 def data_plotting(dataset):
-    # Plot price against each feature
+    """The purpose of this function is to visualize the relationship between the numeric features in the dataset 
+    and the target variable 'final_price'.
+    """
+    # Iterate over each column in the dataset
     for each in dataset.columns.values:
-        if each != 'final_price' and dataset[each].dtype!='O':
-            plt.plot(dataset[each],dataset['final_price'] ,'o',)
+        # Check if the column is not 'final_price' and if it is not of object type (i.e., it's numeric)
+        if each != 'final_price' and dataset[each].dtype != 'O':
+            # Create a scatter plot for the current column against 'final_price'
+            plt.plot(dataset[each], dataset['final_price'], 'o')
+            # Set the title of the plot to indicate which column is being plotted
             plt.title(f"{each} with Final Price")
+            # Label the x-axis with the current column name
             plt.xlabel(f"{each}")
+            # Label the y-axis as 'final price'
             plt.ylabel("final price")
+            # Adjust layout to ensure the plot elements fit well
             plt.tight_layout()
-           
+            # Display the plot
             plt.show()
 
 def main():
     print ("Hello")
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     dataset = data_load()
-    data_plotting(dataset)
-    
-        
-            
+    # Describe function is used to generate descriptive statistics that summarize the central tendency, dispersion and shape of a dataset’s distribution, excluding NaN values.
+    dataset.describe()
+    #data_plotting(dataset)
+    data_prepare(dataset)
+
+
+
 
 if __name__ == "__main__":
     main()
