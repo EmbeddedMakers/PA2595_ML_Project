@@ -74,7 +74,25 @@ def data_plotting(dataset):
             plt.show()
 
 def train_models(X_train, y_train):
-    # Define models
+    """Train multiple regression models and select the best two based on cross-validated RMSE scores.
+
+    This function defines a set of regression models, performs 5-fold cross-validation to evaluate 
+    each model's performance using Root Mean Squared Error (RMSE), and identifies the best and 
+    second-best models based on their RMSE scores. The best and second-best models are then 
+    trained on the entire training dataset.
+
+    Args:
+        X_train (pd.DataFrame): The training feature data. It is a DataFrame where each row represents an instance and 
+        each column represents a feature.
+
+        y_train (pd.Series): The training target data. It is a Series where each element represents the target value 
+        corresponding to each instance in X_train.
+
+    Returns:
+        tuple: A tuple containing the best model and the second-best model. Both models are fitted on 
+        the entire training dataset.
+    """
+    # Define models: Create a dictionary of model names and their corresponding instances
     models = {
         'Linear Regression': LinearRegression(),
         'Decision Tree': DecisionTreeRegressor(random_state=42),
@@ -85,30 +103,39 @@ def train_models(X_train, y_train):
     # Train and evaluate models using cross-validation
     results = {}
     for name, model in models.items():
+        # Perform 5-fold cross-validation, evaluating the model with negative mean squared error
         cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+        # Convert negative MSE scores to RMSE scores
         rmse_scores = np.sqrt(-cv_scores)
+        # Store the mean and standard deviation of the RMSE scores for the model
         results[name] = {'RMSE': rmse_scores.mean(), 'STD': rmse_scores.std()}
 
+    # Convert the results dictionary to a DataFrame and transpose it for easier sorting and display
     results_df = pd.DataFrame(results).T
+    # Sort the DataFrame by RMSE to find the best model
     results_df.sort_values(by='RMSE', inplace=True)
+    # Print the sorted DataFrame
     print(results_df)
     
-    # Get the name of the best model
+    # Get the name of the best model (the one with the lowest RMSE)
     best_model_name = results_df.index[0]
     print(f'Best model name: {best_model_name}')
     
     # Select the best model from the models dictionary
     best_model = models[best_model_name]
+    # Train the best model on the entire training set
     best_model.fit(X_train, y_train)
     
-    # Get the name of the best model
+    # Get the name of the second-best model
     second_model_name = results_df.index[1]
     print(f'Second model name: {second_model_name}')
     
-    # Select the best model from the models dictionary
+    # Select the second-best model from the models dictionary
     second_model = models[second_model_name]
+    # Train the second-best model on the entire training set
     second_model.fit(X_train, y_train)
     
+    # Return the best and second-best models
     return best_model, second_model
 
 
@@ -125,7 +152,6 @@ def main():
 
     best_model, second_model = train_models(X_train, y_train)
     
-
 
 
 
