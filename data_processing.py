@@ -153,6 +153,21 @@ def main():
     best_model, second_model = train_models(X_train, y_train)
     
 
+    # Example usage
+    example_features = {
+        'asked_price': 9000000,
+        'land_area': 800,
+        'area': 120,
+        'price_per_area': 75000,
+        'rooms': 5,
+        'supplemental_area': 50
+    }
+
+    features_df = pd.DataFrame([example_features])
+    predicted_price = best_model.predict(features_df)[0]
+
+    print(f'Predicted House Price: {predicted_price}')
+
 
 
 if __name__ == "__main__":
