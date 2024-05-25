@@ -16,17 +16,19 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 def data_load():
-    # Input data files are available in the read-only "../input/" directory
-    for dirname, _, filenames in os.walk('kaggle\input'):
+    input_dir = os.path.join('kaggle', 'input', 'stockholm-house-market-prices')
+    for dirname, _, filenames in os.walk(input_dir):
         for filename in filenames:
-            logging.debug(os.path.join(dirname, filename))
-            dataset = pd.read_csv(os.path.join(dirname, filename))
-            # The column named 'Unnamed: 0' is dropped from the dataset.
-            # The inplace=True parameter means that the operation is performed directly on the dataset without needing to reassign it.
-            dataset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
-            logging.debug(dataset.describe())
-            logging.debug(dataset.head(5))
-            return dataset
+            if filename.endswith('.csv'): 
+                logging.debug(os.path.join(dirname, filename))
+                dataset = pd.read_csv(os.path.join(dirname, filename))
+                # The column named 'Unnamed: 0' is dropped from the dataset.
+                # The inplace=True parameter means that the operation is performed directly on the dataset without needing to reassign it.
+                dataset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
+                logging.debug(dataset.describe())
+                logging.debug(dataset.head(5))
+                return dataset
+
 
 def data_prepare(dataset):
     """The purpose of this function is to prepare the data for a machine learning model:
@@ -140,7 +142,6 @@ def train_models(X_train, y_train):
 
 
 def main():
-    print ("Hello")
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     dataset = data_load()
     # Describe function is used to generate descriptive statistics that summarize the central tendency, dispersion and shape of a dataset’s distribution, excluding NaN values.
